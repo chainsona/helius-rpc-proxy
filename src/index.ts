@@ -1,6 +1,7 @@
 interface Env {
 	CORS_ALLOW_ORIGIN: string;
 	HELIUS_API_KEY: string;
+	AUTHORIZED_API_KEYS: string;
 }
 
 export default {
@@ -32,6 +33,16 @@ export default {
 				status: 200,
 				headers: corsHeaders,
 			});
+		}
+
+		// Extract the api-key from the query parameters
+		const url = new URL(request.url);
+		const apiKeyQueryParam = url.searchParams.get('api-key');
+
+		// Check if the provided api-key is authorized
+		const authorizedApiKeys = env.AUTHORIZED_API_KEYS ? env.AUTHORIZED_API_KEYS.split(',') : [];
+		if (!apiKeyQueryParam || !authorizedApiKeys.includes(apiKeyQueryParam)) {
+			return new Response('Unauthorized access', { status: 401 });
 		}
 
 		const upgradeHeader = request.headers.get('Upgrade')
